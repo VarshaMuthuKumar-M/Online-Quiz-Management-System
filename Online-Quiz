@@ -1,0 +1,160 @@
+import time
+
+class User:
+    def __init__(self, username, password):
+        self.username = username
+        self.password = password
+        self.history = []
+
+
+class Quiz:
+    def __init__(self, title):
+        self.title = title
+        self.questions = []
+
+    def add_question(self, question, options, answer):
+        self.questions.append({
+            "question": question,
+            "options": options,
+            "answer": answer
+        })
+
+
+class QuizSystem:
+    def __init__(self):
+        self.users = {}
+        self.quizzes = {}
+        self.current_user = None
+        self.load_default_quiz()
+
+    def load_default_quiz(self):
+        quiz = Quiz("Python Basics")
+        quiz.add_question(
+            "What is the output of print(2 ** 3)?",
+            ["5", "6", "8", "9"],
+            "8"
+        )
+        quiz.add_question(
+            "Which keyword is used to define a function?",
+            ["def", "func", "define", "function"],
+            "def"
+        )
+        self.quizzes[quiz.title] = quiz
+
+    def register(self):
+        username = input("Enter username: ")
+        if username in self.users:
+            print("User already exists")
+            return
+
+        password = input("Enter password: ")
+        self.users[username] = User(username, password)
+        print("Registration successful")
+
+    def login(self):
+        username = input("Enter username: ")
+        password = input("Enter password: ")
+
+        user = self.users.get(username)
+        if user and user.password == password:
+            self.current_user = user
+            print("Login successful")
+        else:
+            print("Invalid credentials")
+
+    def start_quiz(self):
+        if not self.current_user:
+            print("Please login first")
+            return
+
+        print("\nAvailable Quizzes:")
+        for title in self.quizzes:
+            print("-", title)
+
+        choice = input("Select quiz: ")
+        quiz = self.quizzes.get(choice)
+        if not quiz:
+            print("Quiz not found")
+            return
+
+        score = 0
+        start_time = time.time()
+
+        for q in quiz.questions:
+            print("\n" + q["question"])
+            for i, opt in enumerate(q["options"], start=1):
+                print(f"{i}. {opt}")
+
+            ans = int(input("Choose option (1-4): "))
+            if q["options"][ans - 1] == q["answer"]:
+                score += 1
+
+        duration = round(time.time() - start_time, 2)
+        self.current_user.history.append({
+            "quiz": quiz.title,
+            "score": score,
+            "total": len(quiz.questions),
+            "time": duration
+        })
+
+        print(f"\nScore: {score}/{len(quiz.questions)}")
+        print(f"Time Taken: {duration} seconds")
+
+    def view_history(self):
+        if not self.current_user:
+            print("Please login first")
+            return
+
+        print("\nAttempt History")
+        for h in self.current_user.history:
+            print(f"{h['quiz']} | {h['score']}/{h['total']} | {h['time']}s")
+
+    def admin_add_question(self):
+        password = input("Enter admin password: ")
+        if password != "admin123":
+            print("Unauthorized access")
+            return
+
+        title = input("Enter quiz title: ")
+        if title not in self.quizzes:
+            self.quizzes[title] = Quiz(title)
+
+        quiz = self.quizzes[title]
+        question = input("Enter question: ")
+        options = [input(f"Option {i+1}: ") for i in range(4)]
+        answer = input("Enter correct option: ")
+
+        quiz.add_question(question, options, answer)
+        print("Question added successfully")
+
+    def menu(self):
+        while True:
+            print("\n===== Online Quiz Management System =====")
+            print("1. Register")
+            print("2. Login")
+            print("3. Start Quiz")
+            print("4. View History")
+            print("5. Admin: Add Question")
+            print("6. Exit")
+
+            choice = input("Enter choice: ")
+
+            if choice == "1":
+                self.register()
+            elif choice == "2":
+                self.login()
+            elif choice == "3":
+                self.start_quiz()
+            elif choice == "4":
+                self.view_history()
+            elif choice == "5":
+                self.admin_add_question()
+            elif choice == "6":
+                print("Exiting system")
+                break
+            else:
+                print("Invalid choice")
+
+
+system = QuizSystem()
+system.menu()
