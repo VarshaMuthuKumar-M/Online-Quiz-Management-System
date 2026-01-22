@@ -48,6 +48,6 @@ menu()
 
 Displays a menu-driven interface that allows users to navigate through system features until exit.
 
-▶️ Program Execution
+ Program Execution
 
 The program starts by creating an instance of the QuizSystem class and calling the menu() method to launch the application.
